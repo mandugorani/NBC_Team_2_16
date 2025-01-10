@@ -15,7 +15,7 @@ public:
     int attackPower;
     int experience;
     int gold;
-    
+
 
     // 캐릭터의 초기값 (생성자)
     Character(string charName)
@@ -31,7 +31,7 @@ public:
             maxHealth += 20;
             attackPower += 5;
             currentHealth = maxHealth; // 체력을 최대치로 회복하는것 구현
-			experience = 0; // 레벨업 후에 경험치를 다시 0으로 초기화
+            experience = 0; // 레벨업 후에 경험치를 다시 0으로 초기화
             cout << name << " 은(는) " << level << "레벨로 레벨업했다!" << endl;
             cout << "최대 체력 " << maxHealth << "로 증가, 공격력 " << attackPower << "로 증가" << endl;
         }
@@ -65,7 +65,7 @@ public:
     }
 };
 
-
+void battleStart(Character& player);
 void startGame();
 void battle(Character& player);
 void generateItem(Character& player);
@@ -93,7 +93,7 @@ void startGame() {
 
     // 캐릭터 생성 후 전투
     while (player.level < 10) {
-        battle(player);
+        battleStart(player);
     }
 
     // 보스가 등장하는것 구현
@@ -103,6 +103,27 @@ void startGame() {
     cout << "보스 HP: " << boss.health << ", 보스의 공격력: " << boss.attackPower << endl;
 
     // 밑에 보스전 코드 추가(다른방식으로? 같은방식으로?)
+}
+
+void battleStart(Character& player) {
+    char choice;
+    while (true) {
+        cout << "전투를 시작하시겠습니까? (Y/N): ";
+        cin >> choice;
+        choice = toupper(choice); // 대소문자 구분 없애기
+
+        if (choice == 'Y') {
+            battle(player);
+            break;
+        }
+        else if (choice == 'N') {
+            cout << "전투를 건너뛰고 메인 루프로 돌아갑니다." << endl;
+            break;
+        }
+        else {
+            cout << "잘못된 입력입니다. Y 또는 N을 입력해주세요." << endl;
+        }
+    }
 }
 
 void battle(Character& player) {
@@ -117,10 +138,10 @@ void battle(Character& player) {
         // Check if monster is defeated
         if (enemy.health <= 0) {
             cout << "승리!" << endl;
-			player.gainExperience(50); // 경험치를 50 얻는다고 가정
-			player.gold += (rand() % 11) + 10; // 10~20 골드 획득   
+            player.gainExperience(50); // 경험치를 50 얻는다고 가정
+            player.gold += (rand() % 11) + 10; // 10~20 골드 획득   
             cout << player.name << " earned gold! Total Gold: " << player.gold << endl;
-			generateItem(player); // 아이템 드랍 함수 호출
+            generateItem(player); // 아이템 드랍 함수 호출
             break;
         }
 
@@ -138,7 +159,7 @@ void battle(Character& player) {
 
 void generateItem(Character& player) {
     if (rand() % 100 < 30) { // 30%
-		int itemEffect = rand() % 2; // 0: 체력 회복, 1: 공격력 증가
+        int itemEffect = rand() % 2; // 0: 체력 회복, 1: 공격력 증가
         if (itemEffect == 0) {
             player.currentHealth += 50;
             if (player.currentHealth > player.maxHealth) {
