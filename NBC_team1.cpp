@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#include <vector>
 
 using namespace std;
 
@@ -47,25 +48,98 @@ public:
 
     void displayStatus() {
         cout << "Character: " << name << endl;
-        cout << "레벨: " << level << ", HP: " << currentHealth << "/" << maxHealth << ", 공격력: " << attackPower << endl;
+        cout << "레벨: " << level << ", HP: " << currentHealth << "/" << maxHealth << ", 공격력: " << attackPower << ", 골드: " << gold << endl;
     }
 };
 
-// Monster 클래스를 정의한다면?
-class Monster {
+// 랜덤 범위 함수
+int randRange(int min, int max)
+{
+    return min + (rand() % (max - min + 1));
+}
+
+// 몬스터 타입 구조체
+struct MonsterType
+{
+    string name;        // 몬스터 이름
+    int minHealth;      // 최소 채력
+    int maxHealth;      // 최대 채력
+    int minAttack;      // 최소 공격력
+    int maxAttack;      // 최대 공격력
+    int minGold;        // 최소 골드
+    int maxGold;        // 최대 골드
+    double spawnChance; // 등장 확률 (%)
+
+    MonsterType(const string& name, int minHealth, int maxHealth, int minAttack, int maxAttack, int minGold, int maxGold, double spawnChance)
+        : name(name), minHealth(minHealth), maxHealth(maxHealth), minAttack(minAttack), maxAttack(maxAttack), minGold(minGold), maxGold(maxGold), spawnChance(spawnChance) {}
+};
+
+// 몬스터 종류 리스트
+vector<MonsterType> monsterTypes =
+{
+    {"고블린", 100, 130, 10, 15, 5, 10, 50.0},
+    {"스켈레톤", 150, 190, 13, 20, 10, 20, 40.0},
+    {"오크", 250, 320, 25, 40, 20, 30, 9.0},
+    {"보물 고블린", 20, 30, 1, 5, 100, 150, 1.0}
+};
+
+// Monster 클래스
+class Monster
+{
 public:
-    int health;
-    int attackPower;
-    int randRange(int min, int max) {
-        return min + (rand() % (max - min + 1)); // min에서 max 사이의 랜덤한 수를 반환
-    }
-    Monster(int level) {
-        health = randRange(level * 20, level * 30);   // level * 20에서 level * 30 사이의 랜덤 체력 구현
-        attackPower = randRange(level * 5, level * 10);
+    string name;    // 몬스터 이름
+    int health;     // 채력
+    int attackPower;// 공격력
+    int goldDrop;   // 골드
+
+    // 레벨 기반 생성자
+    Monster(const string& MonsterName, int Level, int minHealth, int maxHealth, int minAttack, int maxAttack, int minGold, int maxGold)
+    {
+        name = MonsterName;
+        health = randRange(minHealth + Level * 10, maxHealth + Level * 10);
+        attackPower = randRange(minAttack + Level * 2, maxAttack + Level * 2);
+        goldDrop = randRange(minGold, maxGold);
     }
 };
+
+// 랜덤 몬스터 생성 함수
+Monster generateRandomMonster(int playerLevel)
+{
+    double roll = (rand() % 100) + 1;
+    double cumulativeChance = 0.0;
+
+    for (const auto& type : monsterTypes)
+    {
+        cumulativeChance += type.spawnChance;
+        if (roll <= cumulativeChance)
+        {
+            return Monster(
+                type.name,
+                playerLevel,
+                type.minHealth,
+                type.maxHealth,
+                type.minAttack,
+                type.maxAttack,
+                type.minGold,
+                type.maxGold
+            );
+        }
+    }
+    return Monster(
+        monsterTypes[0].name,
+        playerLevel,
+        monsterTypes[0].minHealth,
+        monsterTypes[0].maxHealth,
+        monsterTypes[0].minAttack,
+        monsterTypes[0].maxAttack,
+        monsterTypes[0].minGold,
+        monsterTypes[0].maxGold
+    ); // 기본적으로 첫 번째 몬스터 반환
+}
 
 void battleStart(Character& player);
+
+// 전투 함수
 void startGame();
 void battle(Character& player);
 void generateItem(Character& player);
@@ -99,8 +173,8 @@ void startGame() {
     // 보스가 등장하는것 구현
     cout << "축하합니다! " << player.name << " 레벨 10 달성!" << endl;
     cout << "보스 몬스터 등장:" << endl;
-    Monster boss(10);
-    cout << "보스 HP: " << boss.health << ", 보스의 공격력: " << boss.attackPower << endl;
+    Monster boss = generateRandomMonster(10);
+    cout << "보스 이름: " << boss.name << "보스 HP: " << boss.health << ", 보스의 공격력: " << boss.attackPower << endl;
 
     // 밑에 보스전 코드 추가(다른방식으로? 같은방식으로?)
 }
@@ -127,27 +201,27 @@ void battleStart(Character& player) {
 }
 
 void battle(Character& player) {
-    Monster enemy(player.level);
-    cout << "몬스터 등장! 몬스터 HP: " << enemy.health << ", 몬스터 공격력: " << enemy.attackPower << endl;
+    Monster enemy = generateRandomMonster(player.level);
+    cout << enemy.name <<"몬스터 등장! HP: " << enemy.health << ", 공격력: " << enemy.attackPower << endl;
 
     while (enemy.health > 0) {
         // Player attack
         enemy.health -= player.attackPower;
-        cout << player.name << " 이(가) 몬스터를 공격! 몬스터의 남은 HP: " << enemy.health << endl;
+        cout << player.name << " 이(가) " << enemy.name << "을(를) 공격! 남은 HP : " << enemy.health << endl;
 
         // Check if monster is defeated
         if (enemy.health <= 0) {
             cout << "승리!" << endl;
-            player.gainExperience(50); // 경험치를 50 얻는다고 가정
-            player.gold += (rand() % 11) + 10; // 10~20 골드 획득   
-            cout << player.name << " earned gold! Total Gold: " << player.gold << endl;
-            generateItem(player); // 아이템 드랍 함수 호출
+			player.gainExperience(50); // 경험치를 50 얻는다고 가정
+			player.gold += enemy.goldDrop; // 몬스터에 설정된 골드 값   
+            cout << player.name << " 이(가) " << enemy.goldDrop << " 골드를 획득했습니다!" << endl;
+			generateItem(player); // 아이템 드랍 함수 호출
             break;
         }
 
         // 공격(몬스터의)
         player.currentHealth -= enemy.attackPower;
-        cout << "몬스터의 공격! " << player.name << " 의 HP가 " << player.currentHealth << "로 감소!" << endl;
+        cout << enemy.name << "의 공격" << player.name << " 의 HP가 " << player.currentHealth << "로 감소!" << endl;
 
         // 패배시
         if (player.currentHealth <= 0) {
