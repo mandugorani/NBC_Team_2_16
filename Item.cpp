@@ -44,7 +44,7 @@ public:
     }
 
     int getPrice() const override {
-        return 25;
+        return 30;
     }
 
     void use(Character& Character) const override {
