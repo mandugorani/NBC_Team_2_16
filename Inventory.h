@@ -7,7 +7,7 @@
 
 using namespace std;
 
-// ÀÎº¥Åä¸® Å¬·¡½º
+// ì¸ë²¤í† ë¦¬ í´ë˜ìŠ¤
 class Inventory {
 private:
     vector<shared_ptr<Item>> items;
@@ -15,43 +15,43 @@ private:
 public:
     void addItem(const shared_ptr<Item>& item) {
         items.push_back(item);
-        cout << item->getName() << "À»(¸¦) ÀÎº¥Åä¸®¿¡ Ãß°¡Çß½À´Ï´Ù.\n";
+        cout << item->getName() << "ì„(ë¥¼) ì¸ë²¤í† ë¦¬ì— ì¶”ê°€í–ˆìŠµë‹ˆë‹¤.\n";
     }
 
     void useItem(Character& character) {
         if (items.empty()) {
-            cout << "ÀÎº¥Åä¸®°¡ ºñ¾î ÀÖ½À´Ï´Ù!\n";
+            cout << "ì¸ë²¤í† ë¦¬ê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤!\n";
             return;
         }
 
-        cout << "\n=== ÀÎº¥Åä¸® ===" << endl;
+        cout << "\n=== ì¸ë²¤í† ë¦¬ ===" << endl;
         for (size_t i = 0; i < items.size(); ++i) {
             cout << i + 1 << ". " << items[i]->getName() << endl;
         }
-        cout << items.size() + 1 << ". ³ª°¡±â\n";
+        cout << items.size() + 1 << ". ë‚˜ê°€ê¸°\n";
 
-        cout << "»ç¿ëÇÒ ¾ÆÀÌÅÛ ¹øÈ£¸¦ ¼±ÅÃÇÏ¼¼¿ä: ";
+        cout << "ì‚¬ìš©í•  ì•„ì´í…œ ë²ˆí˜¸ë¥¼ ì„ íƒí•˜ì„¸ìš”: ";
         int choice;
         cin >> choice;
 
         if (choice == items.size() + 1) {
-            cout << "ÀÎº¥Åä¸®¸¦ ´İ½À´Ï´Ù.\n";
+            cout << "ì¸ë²¤í† ë¦¬ë¥¼ ë‹«ìŠµë‹ˆë‹¤.\n";
             return;
         }
 
         if (choice < 1 || choice > items.size()) {
-            cout << "Àß¸øµÈ ¼±ÅÃÀÔ´Ï´Ù.\n";
+            cout << "ì˜ëª»ëœ ì„ íƒì…ë‹ˆë‹¤.\n";
             return;
         }
 
         items[choice - 1]->use(character);
-        items.erase(items.begin() + (choice - 1)); // »ç¿ë ÈÄ »èÁ¦
+        items.erase(items.begin() + (choice - 1)); // ì‚¬ìš© í›„ ì‚­ì œ
     }
 
     void showInventory() const {
-        cout << "\n=== ÇöÀç ÀÎº¥Åä¸® ===\n";
+        cout << "\n=== í˜„ì¬ ì¸ë²¤í† ë¦¬ ===\n";
         if (items.empty()) {
-            cout << "ÀÎº¥Åä¸®°¡ ºñ¾î ÀÖ½À´Ï´Ù.\n";
+            cout << "ì¸ë²¤í† ë¦¬ê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤.\n";
         }
         else {
             for (const auto& item : items) {
