@@ -1,116 +1,165 @@
-ï»¿#include <iostream>
+#include <iostream>
+#include <string>
 #include <cstdlib>
 #include <ctime>
-#include <string>
-#include "Character.h"  // ì´ë¯¸ ë§Œë“¤ì–´ì§„ Character í´ë˜ìŠ¤ í¬í•¨
+#include <vector>
+#include "Monster.h"
 
 using namespace std;
 
-class Monster
-{
+// Ä³¸¯ÅÍ Å¬·¡½º¸¦ Á¤ÀÇÇÑ´Ù¸é?
+class Character {
 public:
-    string name;      // ëª¬ìŠ¤í„° ì´ë¦„
-    int health;       // ëª¬ìŠ¤í„° ì²´ë ¥
-    int attackPower;  // ëª¬ìŠ¤í„° ê³µê²©ë ¥
+    string name;
+    int level;
+    int maxHealth;
+    int currentHealth;
+    int attackPower;
+    int experience;
+    int gold;
 
-    // ëª¬ìŠ¤í„° ìƒì„±ì
-    Monster(int level);
+    // Ä³¸¯ÅÍÀÇ ÃÊ±â°ª (»ı¼ºÀÚ)
+    Character(string charName)
+        : name(charName), level(1), maxHealth(200), currentHealth(200),
+        attackPower(30), experience(0), gold(0) {
+    }
 
-    // ëœë¤ ê°’ ìƒì„± í•¨ìˆ˜ (minê³¼ max ì‚¬ì´ì˜ ê°’ ë°˜í™˜)
-    int randRange(int min, int max);
+    // ·¹º§¾÷ ±¸Çö
+    void levelUp() {
+        if (level < 10) {
+            level++;
+            maxHealth += 20;
+            attackPower += 5;
+            currentHealth = maxHealth; // Ã¼·ÂÀ» ÃÖ´ëÄ¡·Î È¸º¹ÇÏ´Â°Í ±¸Çö
+            experience = 0; // ·¹º§¾÷ ÈÄ¿¡ °æÇèÄ¡¸¦ ´Ù½Ã 0À¸·Î ÃÊ±âÈ­
+            cout << name << " Àº(´Â) " << level << "·¹º§·Î ·¹º§¾÷Çß´Ù!" << endl;
+            cout << "ÃÖ´ë Ã¼·Â " << maxHealth << "·Î Áõ°¡, °ø°İ·Â " << attackPower << "·Î Áõ°¡" << endl;
+        }
+    }
+
+    void gainExperience(int exp) {
+        experience += exp;
+        cout << name << "´Â " << exp << " °æÇèÄ¡¸¦ ¾ò¾ú´Ù!" << endl;
+        if (experience >= 100) {
+            levelUp();
+        }
+    }
+
+    void displayStatus() {
+        cout << "Character: " << name << endl;
+        cout << "·¹º§: " << level << ", HP: " << currentHealth << "/" << maxHealth << ", °ø°İ·Â: " << attackPower << ", °ñµå: " << gold << endl;
+    }
 };
+void battleStart(Character& player);
 
-// ëª¬ìŠ¤í„° í´ë˜ìŠ¤ êµ¬í˜„
+// ÀüÅõ ÇÔ¼ö
+void startGame();
+void battle(Character& player);
+void generateItem(Character& player);
 
-Monster::Monster(int level)
-{
-    name = "ëª¬ìŠ¤í„°";
-    health = randRange(level * 20, level * 30);  // ëª¬ìŠ¤í„° ì²´ë ¥ ìƒì„±
-    attackPower = randRange(level * 5, level * 10);  // ëª¬ìŠ¤í„° ê³µê²©ë ¥ ìƒì„±
+// Main ÇÔ¼ö
+int main() {
+    srand(time(0)); // ÄÚÆÄÀÏ·µÀÌ ³ÖÀ¸·¡¼­ ³ÖÀ½
+    startGame();
+    return 0;
 }
 
-int Monster::randRange(int min, int max)
-{
-    return min + (rand() % (max - min + 1));  // minê³¼ max ì‚¬ì´ì˜ ëœë¤ê°’ ìƒì„±
+void startGame() {
+    string name;
+    cout << "Ä³¸¯ÅÍÀÇ ÀÌ¸§À» ÀÔ·ÂÇÏ¼¼¿ä: ";
+    getline(cin, name);
+
+    while (name.empty() || name.find(' ') != string::npos) {
+        cout << "Ä³¸¯ÅÍÀÇ ÀÌ¸§¿¡ °ø¹éÀ» ³ÖÀ» ¼ö ¾ø½À´Ï´Ù: ";
+        getline(cin, name);
+    }
+
+    Character player(name);
+    cout << "Ä³¸¯ÅÍ »ı¼º ¿Ï·á!" << endl;
+    player.displayStatus();
+
+    // Ä³¸¯ÅÍ »ı¼º ÈÄ ÀüÅõ
+    while (player.level < 10) {
+        battleStart(player);
+    }
+
+    // º¸½º°¡ µîÀåÇÏ´Â°Í ±¸Çö
+    cout << "ÃàÇÏÇÕ´Ï´Ù! " << player.name << " ·¹º§ 10 ´Ş¼º!" << endl;
+    cout << "º¸½º ¸ó½ºÅÍ µîÀå:" << endl;
+    Monster boss = generateBossMonster();
+    cout << "º¸½º ÀÌ¸§: " << boss.name << " HP: " << boss.health << ", °ø°İ·Â: " << boss.attackPower << endl;
+
+    // ¹Ø¿¡ º¸½ºÀü ÄÚµå Ãß°¡(´Ù¸¥¹æ½ÄÀ¸·Î? °°Àº¹æ½ÄÀ¸·Î?)
 }
 
-// ì „íˆ¬ í•¨ìˆ˜
-void battle(Character& player, Monster& enemy)
-{
-    while (enemy.health > 0)
-    {
-        cout << "\n1. ê³µê²©  2. ìŠ¤í‚¬ ì‚¬ìš©  3. ìƒíƒœ ë³´ê¸°" << endl;
-        cout << "ì„ íƒ: ";
-        int choice;
+void battleStart(Character& player) {
+    char choice;
+    while (true) {
+        cout << "ÀüÅõ¸¦ ½ÃÀÛÇÏ½Ã°Ú½À´Ï±î? (Y/N): ";
         cin >> choice;
+        choice = toupper(choice); // ´ë¼Ò¹®ÀÚ ±¸ºĞ ¾ø¾Ö±â
 
-        if (choice == 1) {  // ê¸°ë³¸ ê³µê²©
-            enemy.health -= player.attackPower;
-            cout << player.name << " ì´(ê°€) ëª¬ìŠ¤í„°ë¥¼ ê³µê²©! ëª¬ìŠ¤í„°ì˜ ë‚¨ì€ HP: " << enemy.health << endl;
+        if (choice == 'Y') {
+            battle(player);
+            break;
         }
-        else if (choice == 2) {  // ìŠ¤í‚¬ ì‚¬ìš©
-            player.useSkill("Judgment Blade", 20);  // ì˜ˆì‹œë¡œ "Judgment Blade" ìŠ¤í‚¬ ì‚¬ìš©
-            enemy.health -= static_cast<int>(player.attackPower * 1.5);
-        }
-        else if (choice == 3) {  // ìƒíƒœ í™•ì¸
-            player.displayStatus();
-            continue;  // ìƒíƒœë¥¼ ë³¸ í›„ ë‹¤ì‹œ ì„ íƒ
+        else if (choice == 'N') {
+            cout << "ÀüÅõ¸¦ °Ç³Ê¶Ù°í ¸ŞÀÎ ·çÇÁ·Î µ¹¾Æ°©´Ï´Ù." << endl;
+            break;
         }
         else {
-            cout << "ì˜ëª»ëœ ì…ë ¥ì…ë‹ˆë‹¤." << endl;
-            continue;
+            cout << "Àß¸øµÈ ÀÔ·ÂÀÔ´Ï´Ù. Y ¶Ç´Â NÀ» ÀÔ·ÂÇØÁÖ¼¼¿ä." << endl;
         }
+    }
+}
 
-        // ëª¬ìŠ¤í„°ê°€ ì“°ëŸ¬ì¡ŒëŠ”ì§€ í™•ì¸
+void battle(Character& player) {
+    Monster enemy = generateRandomMonster(player.level);
+    cout << enemy.name <<"¸ó½ºÅÍ µîÀå! HP: " << enemy.health << ", °ø°İ·Â: " << enemy.attackPower << endl;
+
+    while (enemy.health > 0) {
+        // Player attack
+        enemy.health -= player.attackPower;
+        cout << player.name << " ÀÌ(°¡) " << enemy.name << "À»(¸¦) °ø°İ! ³²Àº HP : " << enemy.health << endl;
+
+        // Check if monster is defeated
         if (enemy.health <= 0) {
-            cout << "ìŠ¹ë¦¬! " << endl;
-            player.gainExperience(50);  // ê²½í—˜ì¹˜ 50 ì–»ê¸°
-            player.displayStatus();
+            cout << "½Â¸®!" << endl;
+			player.gainExperience(50); // °æÇèÄ¡¸¦ 50 ¾ò´Â´Ù°í °¡Á¤
+			player.gold += enemy.goldDrop; // ¸ó½ºÅÍ¿¡ ¼³Á¤µÈ °ñµå °ª   
+            cout << player.name << " ÀÌ(°¡) " << enemy.goldDrop << " °ñµå¸¦ È¹µæÇß½À´Ï´Ù!" << endl;
+			generateItem(player); // ¾ÆÀÌÅÛ µå¶ø ÇÔ¼ö È£Ãâ
             break;
         }
 
-        // ëª¬ìŠ¤í„°ì˜ ë°˜ê²©
+        // °ø°İ(¸ó½ºÅÍÀÇ)
         player.currentHealth -= enemy.attackPower;
-        cout << "ëª¬ìŠ¤í„°ì˜ ê³µê²©! " << player.name << " ì˜ HPê°€ " << player.currentHealth << "ë¡œ ê°ì†Œ!" << endl;
+        cout << enemy.name << "ÀÇ °ø°İ" << player.name << " ÀÇ HP°¡ " << player.currentHealth << "·Î °¨¼Ò!" << endl;
 
-        // í”Œë ˆì´ì–´ê°€ íŒ¨ë°°í–ˆëŠ”ì§€ í™•ì¸
+        // ÆĞ¹è½Ã
         if (player.currentHealth <= 0) {
-            cout << player.name << " ì´(ê°€) íŒ¨ë°°í–ˆìŠµë‹ˆë‹¤. ê²Œì„ ì¢…ë£Œ." << endl;
+            cout << player.name << " °¡ ÆĞ¹èÇß½À´Ï´Ù." << endl;
             exit(0);
         }
     }
 }
 
-int main() {
-    srand(time(0));  // ë‚œìˆ˜ ì´ˆê¸°í™”
-
-    string name;
-    cout << "ìºë¦­í„°ì˜ ì´ë¦„ì„ ì…ë ¥í•˜ì„¸ìš”: ";
-    getline(cin, name);
-
-    while (name.empty() || name.find(' ') != string::npos) {
-        cout << "ì´ë¦„ì— ê³µë°±ì„ ë„£ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. ë‹¤ì‹œ ì…ë ¥í•˜ì„¸ìš”: ";
-        getline(cin, name);
+void generateItem(Character& player) {
+    if (rand() % 100 < 30) { // 30%
+        int itemEffect = rand() % 2; // 0: Ã¼·Â È¸º¹, 1: °ø°İ·Â Áõ°¡
+        if (itemEffect == 0) {
+            player.currentHealth += 50;
+            if (player.currentHealth > player.maxHealth) {
+                player.currentHealth = player.maxHealth; // Ã¼·Â ÃÊ°ú ¹æÁö
+            }
+            cout << "Ã¼·ÂÀ» È¸º¹ÇØÁÖ´Â ¾ÆÀÌÅÛ ¹ß°ß! Ã¼·Â È¸º¹ ÈÄ Ã¼·Â: " << player.currentHealth << endl;
+        }
+        else {
+            player.attackPower += 10;
+            cout << "°ø°İ·ÂÀ» ¿Ã·ÁÁÖ´Â ¾ÆÀÌÅÛ ¹ß°ß! ÃÑ °ø°İ·Â: " << player.attackPower << endl;
+        }
     }
-
-    Character player(name);  // ìƒì„± ì‹œ íˆë“  ìºë¦­í„°ê°€ í™œì„±í™”ë˜ì§€ ì•ŠìŒ
-    player.displayStatus();  // ìºë¦­í„° ìƒíƒœ ì¶œë ¥
-
-    // ì „íˆ¬ ë£¨í”„
-    while (player.level < 10) {  // ë ˆë²¨ 10ì— ë„ë‹¬í•  ë•Œê¹Œì§€ ì „íˆ¬ ì§„í–‰
-        cout << "ì „íˆ¬ë¥¼ ì‹œì‘í•©ë‹ˆë‹¤!" << endl;
-        Monster enemy(player.level);  // í”Œë ˆì´ì–´ ë ˆë²¨ì— ë§ì¶° ëª¬ìŠ¤í„° ìƒì„±
-        battle(player, enemy);  // ëª¬ìŠ¤í„°ì™€ ì „íˆ¬ ì‹œì‘
+    else {
+        cout << "¾ÆÀÌÅÛÀÌ ¾ø´Ù." << endl;
     }
-
-    // ë ˆë²¨ 10 ë„ë‹¬ í›„ ë³´ìŠ¤ ë“±ì¥
-    cout << "ì¶•í•˜í•©ë‹ˆë‹¤! " << player.name << " ì€(ëŠ”) ë ˆë²¨ 10ì— ë„ë‹¬í–ˆìŠµë‹ˆë‹¤!" << endl;
-    cout << "ë³´ìŠ¤ ëª¬ìŠ¤í„° ë“±ì¥!" << endl;
-    Monster boss(10);  // ë³´ìŠ¤ ëª¬ìŠ¤í„° ìƒì„±
-    cout << "ë³´ìŠ¤ HP: " << boss.health << ", ë³´ìŠ¤ ê³µê²©ë ¥: " << boss.attackPower << endl;
-
-    // ë³´ìŠ¤ì™€ ì „íˆ¬
-    battle(player, boss);
-
-    return 0;
 }
