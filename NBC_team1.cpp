@@ -16,12 +16,12 @@ public:
     int attackPower;
     int experience;
     int gold;
-
+    int mana;
 
     // 캐릭터의 초기값 (생성자)
     Character(string charName)
         : name(charName), level(1), maxHealth(200), currentHealth(200),
-        attackPower(30), experience(0), gold(0) {
+        attackPower(30), experience(0), gold(0), mana(100) {
     }
 
 
@@ -49,6 +49,15 @@ public:
     void displayStatus() {
         cout << "Character: " << name << endl;
         cout << "레벨: " << level << ", HP: " << currentHealth << "/" << maxHealth << ", 공격력: " << attackPower << ", 골드: " << gold << endl;
+    }
+    void useskill() {
+        if (mana >= 20) {
+            mana -= 20;
+            cout << name << "은(는) 스킬을 사용했습니다. 현재 mana: " << mana << endl;
+        }
+        else {
+            cout << "마나가 부족합니다." << endl;
+        }
     }
 };
 
@@ -205,11 +214,27 @@ void battle(Character& player) {
     cout << enemy.name <<"몬스터 등장! HP: " << enemy.health << ", 공격력: " << enemy.attackPower << endl;
 
     while (enemy.health > 0) {
-        // Player attack
-        enemy.health -= player.attackPower;
-        cout << player.name << " 이(가) " << enemy.name << "을(를) 공격! 남은 HP : " << enemy.health << endl;
+        // Player attack (choice)
+        cout << "1. 공격, 2. 스킬 사용" << endl; // 이순신 20250113▼
+        int choice;
+        cin >> choice;
 
-        // Check if monster is defeated
+        if (choice == 1) { //공격을 선택
+            enemy.health -= player.attackPower;
+            cout << player.name << " 이(가) " << enemy.name << "을(를) 공격! 남은 HP : " << enemy.health << endl;
+        }
+        else if (choice == 2) { //스킬을 선택
+            player.useskill(); // 스킬 사용 함수를 호출
+            enemy.health -= player.attackPower * 2; // 스킬이 하나밖에 없으며 공격력의 2배만큼의 데미지를 준다고 가정
+            cout << player.name << " 이(가) " << enemy.name << "을(를) 공격! 남은 HP : " << enemy.health << endl;
+        }
+        else {
+            cout << "잘못된 입력입니다." << endl;
+            continue;
+        } // 이순신 20250113▲
+        
+
+        // 몬스터가 죽었을때?
         if (enemy.health <= 0) {
             cout << "승리!" << endl;
 			player.gainExperience(50); // 경험치를 50 얻는다고 가정
